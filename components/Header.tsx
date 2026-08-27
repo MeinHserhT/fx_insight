@@ -72,7 +72,7 @@ export function Header({
                 Forex<span className="text-indigo-600">Sync</span>
               </span>
               <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-indigo-50 text-indigo-700 font-semibold border border-indigo-200/80 font-mono">
-                {baseFlag} {baseCode} → {quoteFlag} {quoteCode}
+                {baseFlag} {baseCode} ⇄ {quoteFlag} {quoteCode}
               </span>
             </div>
             <p className="text-[10px] text-slate-500 flex items-center gap-1">
@@ -126,3 +126,4 @@ export function Header({
     </header>
   );
 }
+

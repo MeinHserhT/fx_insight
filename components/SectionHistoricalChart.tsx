@@ -70,19 +70,22 @@ function ChartTooltipContent({ active, payload, showSMA7, showSMA30, baseCode = 
           <span>{point.date}</span>
           {point.eventNote && (
             <span className="text-amber-400 font-sans font-semibold text-[10px]">
-              🚩 Milestone
+              ★ Milestone
             </span>
           )}
         </div>
+
         <div className="font-mono text-base font-bold text-emerald-400 flex items-center gap-1.5">
           <span>{formatChartValue(point.rate, quoteCode)} {quoteCode}</span>
           <span className="text-[10px] text-slate-400 font-normal">/ {baseCode === 'VND' ? '100,000' : '1'} {baseCode}</span>
         </div>
+
         {point.eventNote && (
           <div className="text-[11px] text-amber-200 border-t border-slate-800 pt-1 mt-1 max-w-[220px]">
             {point.eventNote}
           </div>
         )}
+
         {point.sma7 && showSMA7 && (
           <div className="text-[10px] text-amber-400 font-mono">
             7-Day SMA: {formatChartValue(point.sma7, quoteCode)} {quoteCode}
@@ -143,14 +146,17 @@ export function SectionHistoricalChart({
         avg: effectiveCurrentRate,
       };
     }
+
     let high = -Infinity;
     let low = Infinity;
     let sum = 0;
+
     data.forEach((p) => {
       if (p.rate > high) high = p.rate;
       if (p.rate < low) low = p.rate;
       sum += p.rate;
     });
+
     const first = data[0].rate;
     const last = data[data.length - 1].rate;
     const change = last - first;
@@ -214,7 +220,9 @@ export function SectionHistoricalChart({
   const yMax = metrics.high >= 10 ? Math.ceil(metrics.high * 1.015) : metrics.high * 1.015;
 
   return (
-    <div className="w-full flex flex-col justify-between py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-5">
+    <div
+      className="w-full flex flex-col justify-between py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-5"
+    >
       {/* Section Header & Styled Line */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
@@ -225,7 +233,7 @@ export function SectionHistoricalChart({
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight font-heading">
-                  Multi-Horizon Historical Chart ({baseFlag} {baseCode} → {quoteFlag} {quoteCode})
+                  Multi-Horizon Historical Chart ({baseFlag} {baseCode} ➔ {quoteFlag} {quoteCode})
                 </h2>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 uppercase tracking-wider font-heading">
                   Macro Trends
@@ -240,7 +248,6 @@ export function SectionHistoricalChart({
             Real Interbank Series
           </span>
         </div>
-
         {/* Soft Rounded Filson-matching Divider Line */}
         <div className="h-[2px] w-full bg-gradient-to-r from-emerald-500 via-emerald-200/70 to-slate-200/40 rounded-full" />
       </div>
@@ -426,6 +433,7 @@ export function SectionHistoricalChart({
                     <ChartTooltipContent {...props} showSMA7={showSMA7} showSMA30={showSMA30} baseCode={baseCode} quoteCode={quoteCode} />
                   )}
                 />
+
                 <Area
                   type="monotone"
                   dataKey="rate"
@@ -440,6 +448,7 @@ export function SectionHistoricalChart({
                 {showSMA30 && (
                   <Line type="monotone" dataKey="sma30" stroke="#0284c7" strokeWidth={1.5} dot={false} isAnimationActive={false} />
                 )}
+
                 {/* High/Low Horizontal Reference Lines without text labels (clean dashed guide lines) */}
                 {showHighLow && (
                   <>
@@ -457,6 +466,7 @@ export function SectionHistoricalChart({
                     />
                   </>
                 )}
+
                 {/* Dedicated Highest (Peak) Point Dot & Badge (Always on Front) */}
                 {highestPoint && (
                   <ReferenceDot
@@ -467,7 +477,7 @@ export function SectionHistoricalChart({
                     stroke="#ffffff"
                     strokeWidth={3}
                     label={{
-                      value: `🔺 Peak: ${formatChartValue(highestPoint.rate, quoteCode)} ${quoteCode}`,
+                      value: `▲ Peak: ${formatChartValue(highestPoint.rate, quoteCode)} ${quoteCode}`,
                       fill: '#065f46',
                       fontSize: 11,
                       fontWeight: 700,
@@ -475,7 +485,8 @@ export function SectionHistoricalChart({
                     }}
                   />
                 )}
-                {/* Dedicated Lowest (Trough) Point Dot & Badge (Always on Front) */}
+
+                {/* Dedicated Lowest (Bottom) Point Dot & Badge (Always on Front) */}
                 {lowestPoint && (
                   <ReferenceDot
                     x={lowestPoint.date}
@@ -485,7 +496,7 @@ export function SectionHistoricalChart({
                     stroke="#ffffff"
                     strokeWidth={3}
                     label={{
-                      value: `🔻 Trough: ${formatChartValue(lowestPoint.rate, quoteCode)} ${quoteCode}`,
+                      value: `▼ Bottom: ${formatChartValue(lowestPoint.rate, quoteCode)} ${quoteCode}`,
                       fill: '#991c1c',
                       fontSize: 11,
                       fontWeight: 700,

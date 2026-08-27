@@ -113,10 +113,12 @@ export function SectionSpotConverter({
     // Add MYR and VND first
     map.set('MYR', defaultList[0]);
     map.set('VND', defaultList[1]);
+
     // Add API currencies
     popularCurrencies.forEach((c) => {
       map.set(c.code, c);
     });
+
     // Add any remaining from default list
     defaultList.forEach((c) => {
       if (!map.has(c.code)) map.set(c.code, c);
@@ -143,7 +145,6 @@ export function SectionSpotConverter({
 
   const inverseCrossRate = crossRate > 0 ? 1 / crossRate : 0;
   const isPos = change24hPct >= 0;
-
   const numAmount = parseFloat(amount.replace(/,/g, '')) || 0;
 
   // Effective conversion calculation with optional spread margin
@@ -172,6 +173,17 @@ export function SectionSpotConverter({
     }
   };
 
+  const handleSelectPair = (f: string, t: string) => {
+    setPair(f, t);
+    if (f === 'VND') {
+      setAmount('100000');
+    } else if (f === 'IDR' || f === 'KRW') {
+      setAmount('500000');
+    } else {
+      setAmount('100');
+    }
+  };
+
   const handlePreset = (val: number) => {
     setAmount(val.toString());
   };
@@ -181,6 +193,7 @@ export function SectionSpotConverter({
       toCode === 'VND' || toCode === 'IDR' || toCode === 'KRW'
         ? `${Math.round(convertedValue).toLocaleString()} ${toCode}`
         : `${toCurrency.symbol || ''} ${convertedValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${toCode}`;
+
     navigator.clipboard.writeText(formattedStr);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -199,6 +212,24 @@ export function SectionSpotConverter({
     }
     return [50, 100, 500, 1000, 2500, 5000];
   }, [fromCode]);
+
+  // Vietnamese polymer banknotes reference
+  const vnBanknotes = [
+    { value: 500000, label: '500,000 ₫', color: 'bg-teal-50 border-teal-200 text-teal-800', equiv: 500000 / currentRate, desc: 'Highest note • Cyan polymer' },
+    { value: 200000, label: '200,000 ₫', color: 'bg-amber-50 border-amber-200 text-amber-800', equiv: 200000 / currentRate, desc: 'Common note • Brown polymer' },
+    { value: 100000, label: '100,000 ₫', color: 'bg-emerald-50 border-emerald-200 text-emerald-800', equiv: 100000 / currentRate, desc: 'Wallet staple • Green polymer' },
+    { value: 50000, label: '50,000 ₫', color: 'bg-pink-50 border-pink-200 text-pink-800', equiv: 50000 / currentRate, desc: 'Street food staple • Purple-pink' },
+    { value: 20000, label: '20,000 ₫', color: 'bg-blue-50 border-blue-200 text-blue-800', equiv: 20000 / currentRate, desc: 'Small tip / Drink • Blue polymer' },
+    { value: 10000, label: '10,000 ₫', color: 'bg-yellow-50 border-yellow-200 text-yellow-800', equiv: 10000 / currentRate, desc: 'Small change • Olive-yellow' },
+  ];
+
+  // Common travel spending benchmark items
+  const travelPurchasingItems = [
+    { icon: Coffee, title: 'Street Ca Phe Sua Da', costVND: 25000, costMYR: 25000 / currentRate },
+    { icon: Utensils, title: 'Traditional Pho Bo Bowl', costVND: 55000, costMYR: 55000 / currentRate },
+    { icon: Car, title: 'Grab Ride (City Center)', costVND: 80000, costMYR: 80000 / currentRate },
+    { icon: Hotel, title: 'Boutique Hotel Room / Night', costVND: 850000, costMYR: 850000 / currentRate },
+  ];
 
   // Format rate string for display
   const formatDisplayRate = (rateVal: number, code: string) => {
@@ -231,7 +262,7 @@ export function SectionSpotConverter({
           <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200/80 text-xs font-mono">
             <Globe2 className="w-3.5 h-3.5 text-indigo-600" />
             <span className="text-slate-500">Active Pair:</span>
-            <span className="font-bold text-slate-800">{fromCurrency.flag} {fromCode} → {toCurrency.flag} {toCode}</span>
+            <span className="font-bold text-slate-800">{fromCurrency.flag} {fromCode} ➔ {toCurrency.flag} {toCode}</span>
           </div>
         </div>
 
@@ -355,7 +386,7 @@ export function SectionSpotConverter({
             <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 text-center">
               <div className="p-2 rounded-xl bg-slate-50 border border-slate-200/60">
                 <span className="text-[10px] uppercase font-bold text-slate-400 block">Active Pair</span>
-                <span className="text-xs font-mono font-bold text-slate-800 mt-0.5 block">{fromCode} → {toCode}</span>
+                <span className="text-xs font-mono font-bold text-slate-800 mt-0.5 block">{fromCode} ➔ {toCode}</span>
               </div>
               <div className="p-2 rounded-xl bg-slate-50 border border-slate-200/60">
                 <span className="text-[10px] uppercase font-bold text-slate-400 block">Spread Margin</span>
@@ -420,6 +451,7 @@ export function SectionSpotConverter({
                     fromCode === 'VND' || fromCode === 'IDR' || fromCode === 'KRW'
                       ? `${Math.round(fromEquiv).toLocaleString()} ${fromCode}`
                       : `${fromCurrency.symbol || ''} ${fromEquiv.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${fromCode}`;
+
                   return (
                     <div
                       key={d.val}
@@ -546,12 +578,14 @@ export function SectionSpotConverter({
                     ))}
                   </select>
                 </div>
+
                 <div className="flex items-center justify-between gap-3 pt-1">
                   <div className="text-2xl sm:text-3xl font-mono font-extrabold text-indigo-950 tracking-tight truncate">
                     {toCode === 'VND' || toCode === 'IDR' || toCode === 'KRW'
                       ? `${Math.round(convertedValue).toLocaleString()} ${toCode}`
                       : `${toCurrency.symbol || ''} ${convertedValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${toCode}`}
                   </div>
+
                   <button
                     onClick={handleCopyResult}
                     id="btn-copy-spot-result"
@@ -574,6 +608,7 @@ export function SectionSpotConverter({
                     {spreadFeePct === 0 ? '0% (Pure Mid-Market)' : `-${spreadFeePct}% spread`}
                   </span>
                 </div>
+
                 <div className="grid grid-cols-4 gap-1.5 text-[11px]">
                   {[
                     { label: 'Mid-Market', pct: 0 },
@@ -602,7 +637,7 @@ export function SectionSpotConverter({
           {/* Purchasing Power Guide - Dynamically adapts to active pair */}
           <div className="pt-2 border-t border-slate-100">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5">
-              Purchasing Power & Cost Reference ({fromCode} → {toCode}):
+              Purchasing Power & Cost Reference ({fromCode} ➔ {toCode}):
             </span>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {[
@@ -614,14 +649,17 @@ export function SectionSpotConverter({
                 const Icon = item.icon;
                 const costInTarget = item.costUSD * (toCurrency.rateToUSD ? 1 / toCurrency.rateToUSD : 1);
                 const costInSource = item.costUSD * (fromCurrency.rateToUSD ? 1 / fromCurrency.rateToUSD : 1);
+
                 const formattedTarget =
                   toCode === 'VND' || toCode === 'IDR'
                     ? `${(costInTarget / 1000).toFixed(0)}k ${toCode}`
                     : `${toCurrency.symbol || ''}${costInTarget.toFixed(toCode === 'KRW' || toCode === 'JPY' ? 0 : 2)}`;
+
                 const formattedSource =
                   fromCode === 'VND' || fromCode === 'IDR'
                     ? `${(costInSource / 1000).toFixed(0)}k ${fromCode}`
                     : `${fromCurrency.symbol || ''} ${costInSource.toFixed(fromCode === 'KRW' || fromCode === 'JPY' ? 0 : 2)}`;
+
                 return (
                   <div key={item.title} className="p-2 rounded-lg bg-slate-50 border border-slate-200 text-xs">
                     <div className="flex items-center gap-1.5 text-slate-700 font-semibold text-[11px]">
@@ -642,3 +680,4 @@ export function SectionSpotConverter({
     </div>
   );
 }
+

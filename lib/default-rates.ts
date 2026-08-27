@@ -6,7 +6,7 @@ import {
   RatesApiResponse,
   TimeRange,
 } from './types';
-import { enrichWithMovingAverages, computePeriodStats } from './rate-service';
+import { enrichWithMovingAverages } from './rate-service';
 import {
   REAL_HISTORICAL_MAX_DATA,
   REAL_HISTORICAL_10Y_DATA,
@@ -185,6 +185,7 @@ export function generateDefaultMarketProviders(liveRate: number): MarketProvider
 export function generateDefaultPopularCurrencies(liveRate: number): PopularCurrency[] {
   const usdToMyr = 4.425;
   const usdToVnd = usdToMyr * liveRate;
+
   return [
     {
       code: 'USD',
@@ -388,6 +389,7 @@ export function generateDefaultPopularCurrencies(liveRate: number): PopularCurre
 }
 
 export function generateDefaultHistoricalByRange(liveRate: number, endDate = new Date()): Record<TimeRange, RateDataPoint[]> {
+  const ranges: TimeRange[] = ['1D', '1W', '1M', '1Y', '5Y', '10Y', 'MAX'];
   const res: Partial<Record<TimeRange, RateDataPoint[]>> = {};
 
   // 1D: 24 hourly points with intraday peaks and dips
@@ -415,16 +417,20 @@ export function generateDefaultHistoricalByRange(liveRate: number, endDate = new
   const totalSteps1W = 28; // 7 days * 4 per day
   const start1W = new Date(endDate);
   start1W.setDate(start1W.getDate() - 7);
+
   for (let step = 0; step <= totalSteps1W; step++) {
     const d = new Date(start1W);
     d.setHours(d.getHours() + step * 6);
     const progress = step / totalSteps1W;
+
     // Harmonic wave creating a distinct bottom at day 2 (~step 8) and a peak at day 5 (~step 20)
     const wave = Math.sin(progress * Math.PI * 2 - 0.6) * 16.8 + Math.sin(progress * Math.PI * 4) * 4.2;
     const rate = parseFloat((liveRate - (1 - progress) * 6.5 + wave).toFixed(2));
+
     const dayName = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     const timeStr = `${d.getHours().toString().padStart(2, '0')}:00`;
     const label = `${dayName} ${timeStr}`;
+
     points1W.push({
       date: label,
       timestamp: d.getTime(),
@@ -478,6 +484,7 @@ export function generateDefaultHistoricalByRange(liveRate: number, endDate = new
       return { ...p };
     })
   );
+
   res['10Y'] = enrichWithMovingAverages(
     REAL_HISTORICAL_10Y_DATA.map((p, idx, arr) => {
       if (idx === arr.length - 1) {
@@ -486,6 +493,7 @@ export function generateDefaultHistoricalByRange(liveRate: number, endDate = new
       return { ...p };
     })
   );
+
   res['MAX'] = enrichWithMovingAverages(
     REAL_HISTORICAL_MAX_DATA.map((p, idx, arr) => {
       if (idx === arr.length - 1) {
@@ -501,8 +509,6 @@ export function generateDefaultHistoricalByRange(liveRate: number, endDate = new
 export function getDefaultRatesApiResponse(): RatesApiResponse {
   const liveRate = 6436.9;
   const historicalByRange = generateDefaultHistoricalByRange(liveRate);
-  const fullHistory = historicalByRange['1Y'] || [];
-  const stats = computePeriodStats(fullHistory, fullHistory);
   return {
     success: true,
     base: 'MYR',
@@ -513,9 +519,8 @@ export function getDefaultRatesApiResponse(): RatesApiResponse {
     source: 'Live Interbank Mid-Market',
     change24h: 12.4,
     change24hPct: 0.19,
-    stats,
     historicalByRange,
-    historical: fullHistory,
+    historical: historicalByRange['1Y'] || [],
     providers: generateDefaultMarketProviders(liveRate),
     popularCurrencies: generateDefaultPopularCurrencies(liveRate),
     milestones: DEFAULT_HISTORICAL_MILESTONES,

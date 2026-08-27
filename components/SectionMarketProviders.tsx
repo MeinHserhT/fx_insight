@@ -159,7 +159,6 @@ export function SectionMarketProviders({
   const isVND = baseCode === 'VND';
   const isHighDenom = isVND || baseCode === 'IDR' || baseCode === 'KRW';
   const defaultSendAmount = isVND ? 100000 : isHighDenom ? 1000000 : 1000;
-
   const [prevBaseCode, setPrevBaseCode] = useState<string>(baseCode);
   const [sendAmount, setSendAmount] = useState<number>(defaultSendAmount);
   const [sortBy, setSortBy] = useState<'payout' | 'fee' | 'speed' | 'rating'>('payout');
@@ -225,8 +224,31 @@ export function SectionMarketProviders({
     }
   };
 
+  const getLogoBadgeStyle = (badgeColor: string) => {
+    switch (badgeColor) {
+      case 'emerald':
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      case 'blue':
+        return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'indigo':
+        return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+      case 'purple':
+        return 'bg-purple-50 text-purple-700 border-purple-200';
+      case 'yellow':
+        return 'bg-amber-100 text-amber-900 border-amber-300';
+      case 'cyan':
+        return 'bg-cyan-50 text-cyan-800 border-cyan-300';
+      case 'orange':
+        return 'bg-orange-50 text-orange-800 border-orange-200';
+      default:
+        return 'bg-slate-100 text-slate-700 border-slate-200';
+    }
+  };
+
   return (
-    <div className="w-full flex flex-col justify-between py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-5">
+    <div
+      className="w-full flex flex-col justify-between py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-5"
+    >
       {/* Section Header & Styled Line */}
       <div className="space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -236,7 +258,7 @@ export function SectionMarketProviders({
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight font-heading">
-                Remittance & Market Exchange Providers ({baseFlag} {baseCode} → {quoteFlag} {quoteCode})
+                Remittance & Market Exchange Providers ({baseFlag} {baseCode} ➔ {quoteFlag} {quoteCode})
               </h2>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/80 uppercase tracking-wider font-heading">
                 Live Rates & Fees
@@ -247,7 +269,6 @@ export function SectionMarketProviders({
             Mid-Market Benchmark: 1 {baseCode} = {formatRateDisplay(midMarketRate, quoteCode)} {quoteCode}
           </span>
         </div>
-
         {/* Soft Rounded Filson-matching Divider Line */}
         <div className="h-[2px] w-full bg-gradient-to-r from-blue-500 via-blue-200/70 to-slate-200/40 rounded-full" />
       </div>
@@ -365,6 +386,7 @@ export function SectionMarketProviders({
                   bg: '#eef2ff',
                   border: '#c7d2fe',
                 };
+
                 return (
                   <tr
                     key={p.id}
@@ -486,7 +508,7 @@ export function SectionMarketProviders({
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
             <span className="text-slate-600">
-              <strong>Real-Time Comparison:</strong> Live rates & fees for Wise, Xe, Remitly, WorldRemit, Western Union, Touch &apos;n Go eWallet (GOremit), and Ria are dynamically calibrated against live spot interbank rates ({baseCode} → {quoteCode}) to reflect real net recipient payout.
+              <strong>Real-Time Comparison:</strong> Live rates & fees for Wise, Xe, Remitly, WorldRemit, Western Union, Touch &apos;n Go eWallet (GOremit), and Ria are dynamically calibrated against live spot interbank rates ({baseCode} ➔ {quoteCode}) to reflect real net recipient payout.
             </span>
           </div>
           <span className="text-[11px] text-indigo-600 font-bold whitespace-nowrap">

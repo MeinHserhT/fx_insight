@@ -83,7 +83,6 @@ export interface RatesApiResponse {
   source: string;
   change24h: number;
   change24hPct: number;
-  stats: PeriodStats;
   historicalByRange: Record<TimeRange, RateDataPoint[]>;
   historical: RateDataPoint[];
   providers: MarketProvider[];

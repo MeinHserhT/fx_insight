@@ -24,7 +24,6 @@ export function SkeletonLoader() {
           </div>
           <div className="w-full h-64 bg-slate-50 rounded-xl" />
         </div>
-
         <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4 h-96 shadow-sm">
           <div className="h-5 bg-slate-100 rounded w-40" />
           <div className="h-20 bg-slate-50 rounded-xl" />

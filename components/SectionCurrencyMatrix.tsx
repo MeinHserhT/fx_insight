@@ -132,10 +132,9 @@ export function SectionCurrencyMatrix({
             </div>
           </div>
           <span className="text-[10px] sm:text-[11px] text-slate-500 font-mono hidden sm:inline bg-slate-100/80 px-2.5 py-0.5 rounded-lg border border-slate-200/80">
-            Active: {baseCode} ⇄ {quoteCode}
+            Active: {baseCode} ➔ {quoteCode}
           </span>
         </div>
-
         {/* Soft Rounded Divider Line */}
         <div className="h-[2px] w-full bg-gradient-to-r from-purple-500 via-purple-200/70 to-slate-200/40 rounded-full" />
       </div>
@@ -222,6 +221,7 @@ export function SectionCurrencyMatrix({
                   const formattedVal = isLargeDenom
                     ? `${Math.round(converted).toLocaleString()} ${cur.symbol || cur.code}`
                     : `${cur.symbol} ${formatForeignRate(converted)}`;
+
                   const isCopied = copiedCode === cur.code;
 
                   return (
@@ -316,6 +316,7 @@ export function SectionCurrencyMatrix({
                     const curInBase = cur.rateToUSD / (baseCurrency.rateToUSD || 1);
                     // Rate of 1 cur in Quote
                     const curInQuote = cur.rateToUSD / (quoteCurrency.rateToUSD || 1);
+
                     const isQuoteLarge = quoteCode === 'VND' || quoteCode === 'IDR' || quoteCode === 'KRW';
                     const isBaseLarge = baseCode === 'VND' || baseCode === 'IDR' || baseCode === 'KRW';
 
@@ -395,6 +396,7 @@ export function SectionCurrencyMatrix({
                 ≈ {quoteCode === 'VND' ? formatRateVND(1 / (quoteCurrency.rateToUSD || 1)) : formatForeignRate(1 / (quoteCurrency.rateToUSD || 1))} {quoteCode}
               </span>
             </div>
+
             <div className="p-1.5 sm:p-2 rounded-lg bg-slate-50 border border-slate-200">
               <span className="text-[8.5px] uppercase font-bold text-slate-400 block">SGD ASEAN Anchor</span>
               <span className="font-mono font-bold text-slate-800 block text-[10px] sm:text-[11px] mt-0.5">
@@ -404,6 +406,7 @@ export function SectionCurrencyMatrix({
                 ≈ {quoteCode === 'VND' ? formatRateVND((1 / 1.345) / (quoteCurrency.rateToUSD || 1)) : formatForeignRate((1 / 1.345) / (quoteCurrency.rateToUSD || 1))} {quoteCode}
               </span>
             </div>
+
             <div className="p-1.5 sm:p-2 rounded-lg bg-slate-50 border border-slate-200">
               <span className="text-[8.5px] uppercase font-bold text-slate-400 block">CNY Trade Corridor</span>
               <span className="font-mono font-bold text-slate-800 block text-[10px] sm:text-[11px] mt-0.5">

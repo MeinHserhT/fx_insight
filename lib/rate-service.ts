@@ -64,12 +64,14 @@ export function enrichWithMovingAverages(data: RateDataPoint[]): RateDataPoint[]
       const sum7 = slice7.reduce((acc, curr) => acc + curr.rate, 0);
       sma7 = parseFloat((sum7 / 7).toFixed(2));
     }
+
     let sma30: number | undefined = undefined;
     if (index >= 29) {
       const slice30 = data.slice(index - 29, index + 1);
       const sum30 = slice30.reduce((acc, curr) => acc + curr.rate, 0);
       sma30 = parseFloat((sum30 / 30).toFixed(2));
     }
+
     return {
       ...point,
       sma7,
@@ -87,6 +89,7 @@ export function computePeriodStats(
 ): PeriodStats {
   const current = filteredData[filteredData.length - 1] || fullData[fullData.length - 1];
   const first = filteredData[0] || current;
+
   const currentRate = current ? current.rate : 5642.85;
   const inverseRate = current ? current.inverseRate : 1 / currentRate;
   const change24h = current?.change24h || 0;
@@ -293,6 +296,7 @@ export function transformHistoricalForPair(
         inverseRate: scaledInverse,
       };
     });
+
     result[rng] = enrichWithMovingAverages(transformed);
   });
 

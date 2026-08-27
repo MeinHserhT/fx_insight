@@ -7,7 +7,7 @@ import {
   RatesApiResponse,
   TimeRange,
 } from '@/lib/types';
-import { enrichWithMovingAverages, computePeriodStats } from '@/lib/rate-service';
+import { enrichWithMovingAverages } from '@/lib/rate-service';
 import {
   REAL_HISTORICAL_MAX_DATA,
   REAL_HISTORICAL_10Y_DATA,
@@ -19,7 +19,6 @@ interface CacheEntry {
   data: RatesApiResponse;
   timestamp: number;
 }
-
 let cachedResponse: CacheEntry | null = null;
 const CACHE_TTL_MS = 60 * 1000; // 1 minute cache
 
@@ -94,7 +93,6 @@ async function fetchYahooCrossSeries(
     ]);
 
     if (!resMYR.ok || !resVND.ok) return null;
-
     const jMYR = await resMYR.json();
     const jVND = await resVND.json();
 
@@ -125,8 +123,8 @@ async function fetchYahooCrossSeries(
 
       const d = new Date(ts * 1000);
       const hourBucket = Math.floor(ts / 3600);
-      let vndVal = mapVND.get(hourBucket);
 
+      let vndVal = mapVND.get(hourBucket);
       if (!vndVal) {
         // Look within +/- 24 hours for nearest traded session
         for (let offset = -24; offset <= 24; offset++) {
@@ -136,7 +134,6 @@ async function fetchYahooCrossSeries(
           }
         }
       }
-
       if (!vndVal) vndVal = lastKnownVND;
 
       if (myrVal && myrVal > 0 && vndVal && vndVal > 0) {
@@ -181,6 +178,7 @@ async function fetchYahooCrossSeries(
  */
 function generateFallbackRangeData(range: TimeRange, liveRate: number, endDate: Date): RateDataPoint[] {
   const points: RateDataPoint[] = [];
+
   if (range === '1D') {
     const startDay = new Date(endDate);
     startDay.setHours(startDay.getHours() - 24);
@@ -201,15 +199,18 @@ function generateFallbackRangeData(range: TimeRange, liveRate: number, endDate: 
     const totalSteps1W = 28;
     const start1W = new Date(endDate);
     start1W.setDate(start1W.getDate() - 7);
+
     for (let step = 0; step <= totalSteps1W; step++) {
       const d = new Date(start1W);
       d.setHours(d.getHours() + step * 6);
       const progress = step / totalSteps1W;
       const wave = Math.sin(progress * Math.PI * 2 - 0.6) * 16.8 + Math.sin(progress * Math.PI * 4) * 4.2;
       const rate = parseFloat((liveRate - (1 - progress) * 6.5 + wave).toFixed(2));
+
       const dayName = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       const timeStr = `${d.getHours().toString().padStart(2, '0')}:00`;
       const label = `${dayName} ${timeStr}`;
+
       points.push({
         date: label,
         timestamp: d.getTime(),
@@ -268,6 +269,7 @@ function generateFallbackRangeData(range: TimeRange, liveRate: number, endDate: 
       return { ...p };
     });
   }
+
   return points;
 }
 
@@ -772,11 +774,20 @@ async function fetchLiveRate(): Promise<{
   return { rate: 6436.9, source: 'Forex Interbank Mid-Market' };
 }
 
-export async function GET(req: Request) {
-  const url = new URL(req.url);
-  const forceRefresh = url.searchParams.get('refresh') === 'true';
-  const now = Date.now();
+export const dynamic = 'force-static';
 
+export async function GET(req: Request) {
+  let forceRefresh = false;
+  try {
+    if (req && req.url) {
+      const url = new URL(req.url);
+      forceRefresh = url.searchParams.get('refresh') === 'true';
+    }
+  } catch {
+    // Ignore in static export environment
+  }
+
+  const now = Date.now();
   if (!forceRefresh && cachedResponse && now - cachedResponse.timestamp < CACHE_TTL_MS) {
     return NextResponse.json(cachedResponse.data);
   }
@@ -784,6 +795,7 @@ export async function GET(req: Request) {
   try {
     const { rate: liveRate, source, rawRates } = await fetchLiveRate();
     const currentDate = new Date();
+
     const { historicalByRange, fullHistory } = await fetchAllMultiHorizonData(liveRate, currentDate);
     const providers = getMarketProviders(liveRate);
     const popularCurrencies = getPopularCurrencies(liveRate, rawRates);
@@ -791,11 +803,10 @@ export async function GET(req: Request) {
     const yearData = historicalByRange['1Y'] || [];
     const lastPoint = yearData[yearData.length - 1];
     const prevPoint = yearData[yearData.length - 2] || lastPoint;
+
     const change24h = lastPoint && prevPoint ? parseFloat((lastPoint.rate - prevPoint.rate).toFixed(2)) : 0;
     const change24hPct =
       prevPoint && prevPoint.rate > 0 ? parseFloat(((change24h / prevPoint.rate) * 100).toFixed(3)) : 0;
-
-    const stats = computePeriodStats(historicalByRange['1Y'] || fullHistory, fullHistory);
 
     const responseData: RatesApiResponse = {
       success: true,
@@ -807,7 +818,6 @@ export async function GET(req: Request) {
       source,
       change24h,
       change24hPct,
-      stats,
       historicalByRange,
       historical: fullHistory,
       providers,
@@ -827,11 +837,11 @@ export async function GET(req: Request) {
     });
   } catch (error) {
     console.error('Error generating live rates:', error);
+
     const fallbackRate = 6436.9;
     const { historicalByRange, fullHistory } = await fetchAllMultiHorizonData(fallbackRate, new Date());
     const providers = getMarketProviders(fallbackRate);
     const popularCurrencies = getPopularCurrencies(fallbackRate);
-    const stats = computePeriodStats(historicalByRange['1Y'] || fullHistory, fullHistory);
 
     const fallbackResponse: RatesApiResponse = {
       success: true,
@@ -843,7 +853,6 @@ export async function GET(req: Request) {
       source: 'Interbank Benchmark (Live Connected)',
       change24h: 12.4,
       change24hPct: 0.19,
-      stats,
       historicalByRange,
       historical: fullHistory,
       providers,
