@@ -1,0 +1,6 @@
+{
+  "name": "MYR to VND Currency Tracker",
+  "description": "Comprehensive MYR/VND currency exchange intelligence platform featuring spot benchmark converter with presets, 2001-2026 historical horizon chart, live remittance & market app comparison table, and global FX cross-rate matrix.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
