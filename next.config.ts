@@ -2,14 +2,9 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: false,
-  },
-  // Allow access to remote image placeholder.
+  output: 'export',
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
@@ -19,7 +14,10 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  output: 'standalone',
+  basePath: process.env.NEXT_PUBLIC_BASE_PATH || '',
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   transpilePackages: ['motion'],
   webpack: (config, {dev}) => {
     // HMR is disabled in AI Studio via DISABLE_HMR env var.
