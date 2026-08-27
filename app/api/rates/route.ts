@@ -13,6 +13,7 @@ import {
   REAL_HISTORICAL_10Y_DATA,
   REAL_HISTORICAL_5Y_DATA,
 } from '@/lib/historical-data';
+import { getHistoricalFromFrankfurter } from '@/lib/frankfurter-service';
 
 // In-memory cache to prevent hitting rate limits
 interface CacheEntry {
@@ -320,13 +321,22 @@ async function fetchAllMultiHorizonData(
     })
   );
 
-  // Fetch short-term ranges (1D, 1W, 1M, 1Y) with quick timeout
+  // Fetch real market ranges (1D, 1W, 1M, 1Y) using Frankfurter API as primary source
   const shortResults = await Promise.allSettled(
     shortConfigs.map(async (c) => {
+      // 1. Try Frankfurter Keyless API first
+      const frankfurterSeries = await getHistoricalFromFrankfurter(c.key, liveRate, endDate);
+      if (frankfurterSeries && frankfurterSeries.length > 2) {
+        return { key: c.key, data: frankfurterSeries };
+      }
+
+      // 2. Try Yahoo Cross Series
       const liveSeries = await fetchYahooCrossSeries(c.range, c.interval, c.key, liveRate);
       if (liveSeries && liveSeries.length > 2) {
         return { key: c.key, data: liveSeries };
       }
+
+      // 3. Fallback
       return { key: c.key, data: generateFallbackRangeData(c.key, liveRate, endDate) };
     })
   );

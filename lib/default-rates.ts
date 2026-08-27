@@ -412,30 +412,21 @@ export function generateDefaultHistoricalByRange(liveRate: number, endDate = new
   }
   res['1D'] = enrichWithMovingAverages(points1D);
 
-  // 1W: 7 days sampled every 6 hours (28 points) with clear mid-week Peak and Bottom
+  // 1W: 7 full calendar days
   const points1W: RateDataPoint[] = [];
-  const totalSteps1W = 28; // 7 days * 4 per day
-  const start1W = new Date(endDate);
-  start1W.setDate(start1W.getDate() - 7);
-
-  for (let step = 0; step <= totalSteps1W; step++) {
-    const d = new Date(start1W);
-    d.setHours(d.getHours() + step * 6);
-    const progress = step / totalSteps1W;
-
-    // Harmonic wave creating a distinct bottom at day 2 (~step 8) and a peak at day 5 (~step 20)
-    const wave = Math.sin(progress * Math.PI * 2 - 0.6) * 16.8 + Math.sin(progress * Math.PI * 4) * 4.2;
-    const rate = parseFloat((liveRate - (1 - progress) * 6.5 + wave).toFixed(2));
-
-    const dayName = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    const timeStr = `${d.getHours().toString().padStart(2, '0')}:00`;
-    const label = `${dayName} ${timeStr}`;
+  for (let dayOffset = 6; dayOffset >= 0; dayOffset--) {
+    const d = new Date(endDate);
+    d.setDate(d.getDate() - dayOffset);
+    const progress = (6 - dayOffset) / 6;
+    const wave = Math.sin(progress * Math.PI * 2 - 0.6) * 14.5 + Math.sin(progress * Math.PI * 4) * 3.8;
+    const rate = parseFloat((liveRate - (1 - progress) * 5.2 + wave).toFixed(2));
+    const dStr = d.toISOString().split('T')[0];
 
     points1W.push({
-      date: label,
+      date: dStr,
       timestamp: d.getTime(),
-      rate: step === totalSteps1W ? liveRate : rate,
-      inverseRate: parseFloat((1 / (step === totalSteps1W ? liveRate : rate)).toFixed(7)),
+      rate: dayOffset === 0 ? liveRate : rate,
+      inverseRate: parseFloat((1 / (dayOffset === 0 ? liveRate : rate)).toFixed(7)),
     });
   }
   res['1W'] = enrichWithMovingAverages(points1W);

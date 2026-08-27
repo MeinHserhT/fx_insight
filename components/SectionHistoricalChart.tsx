@@ -409,8 +409,16 @@ export function SectionHistoricalChart({
                   tickLine={false}
                   axisLine={{ stroke: '#cbd5e1' }}
                   tick={{ fill: '#64748b', fontSize: 11, fontFamily: 'monospace' }}
-                  minTickGap={35}
+                  minTickGap={selectedRange === '1W' ? 8 : 35}
                   tickFormatter={(val: string) => {
+                    if (selectedRange === '1W' && val.includes('-')) {
+                      try {
+                        const d = new Date(val + 'T00:00:00');
+                        return d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' });
+                      } catch {
+                        return val;
+                      }
+                    }
                     if ((selectedRange === 'MAX' || selectedRange === '10Y' || selectedRange === '5Y') && val.includes('-')) {
                       const parts = val.split('-');
                       if (parts.length >= 2) {
@@ -435,18 +443,18 @@ export function SectionHistoricalChart({
                 />
 
                 <Area
-                  type="monotone"
+                  type="linear"
                   dataKey="rate"
                   stroke="#4f46e5"
-                  strokeWidth={2.5}
+                  strokeWidth={2}
                   fillOpacity={1}
                   fill="url(#colorMYR)"
                 />
                 {showSMA7 && (
-                  <Line type="monotone" dataKey="sma7" stroke="#f59e0b" strokeWidth={1.5} dot={false} isAnimationActive={false} />
+                  <Line type="linear" dataKey="sma7" stroke="#f59e0b" strokeWidth={1.5} dot={false} isAnimationActive={false} />
                 )}
                 {showSMA30 && (
-                  <Line type="monotone" dataKey="sma30" stroke="#0284c7" strokeWidth={1.5} dot={false} isAnimationActive={false} />
+                  <Line type="linear" dataKey="sma30" stroke="#0284c7" strokeWidth={1.5} dot={false} isAnimationActive={false} />
                 )}
 
                 {/* High/Low Horizontal Reference Lines without text labels (clean dashed guide lines) */}
